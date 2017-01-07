@@ -1,0 +1,5 @@
+"0","# Read in LRPC counter locations"
+"0","all <- read_csv(file = ""Data/All_LRPCcounts.txt"") %>% "
+"0","           select(-FID)"
+"0","# Read in the NH GRANIT attribute table"
+"0","nh_roads <- read_csv(""../GIS/geo_spat/NH_roads/NH_roads.csv"")"

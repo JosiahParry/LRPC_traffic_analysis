@@ -1,0 +1,56 @@
+---
+title: "LRPC Traffic Counter Location Cleaning"
+output: html_notebook
+---
+```{r, echo = F}
+library(tidyverse)
+```
+
+The goal of this notebook is to clean, and standardize road names associated with traffic counter locations used by the Lakes Region Planning Commision (LRPC) of New Hampshire. The current data used by the **LRPC** is not in accordance with standard practice of the *NH DOT* and therefore difficult to associate with shapefiles provided by *NH GRANIT*, and other data provided by *NH DOT*. 
+
+The first step in this is to read in all of the counter locations used by the *LRPC*, then the attribute table of the *NH GRANIT* roads shapefile. The first aim is to limit the NH Roads (attribute table of NH GRANIT roads shapefile) to the same towns as listed in the *LRPC* counter attribute table. 
+
+```{r}
+# Read in LRPC counter locations
+all <- read.table(file = "Data/All_LRPCcounts.txt", header = TRUE , 
+                  sep=",", stringsAsFactors = FALSE) %>% 
+           select(-FID)
+
+# Read in the NH GRANIT attribute table
+nh_roads <- read.csv("Data/NH_roads.csv", stringsAsFactors = FALSE)
+```
+
+In order to match the towns, the towns within the `all` (LRPC counters) need to be isolated, and `nh_roads` (NH GRANIT attribute table) should be filtered to only include those towns.
+```{r}
+# Isolate LRPC towns
+lrpc_towns <- unique(all$Town)
+
+# Print LRPC towns
+lrpc_towns
+```
+
+
+Note there are 30 towns (excluding the blank `""`) that are covered in the LRPC data. Now the `nh_roads` must be filtered. There should only be 30 towns in the filtered data.
+```{r}
+# Filter 
+lrpc_roads <- nh_roads %>%
+                filter(TOWN_NAME %in% lrpc_towns)
+
+# View filtered town names
+unique(lrpc_roads$TOWN_NAME)
+```
+
+This method of matching proved to be immensely difficult. In order to most effectively match road to counter I loaded the *LRPC Counter* shapefile and the *NH Roads* shapefile into the open source geographic information system (GIS) platform **QGIS** (Quantum GIS). The two vector files did not overlap perfectly, as not all data is going to be perfectly oriented in space, and thus required the employment of a nearest neighbor join using the *NNJoin* plugin which can be downloaded within *QGIS*. I then exported the data to a shapefile and a csv. These data are messy and may contain redundancies, which will be cleaned within **R**.
+
+```{r}
+lrpc_roads <- read_csv("Data/geo_spat/lrpc_roads.csv")
+head(lrpc_roads)
+```
+
+First I want to verify that all of the points (counters) match the lines (roads). 
+```{r}
+lrpc_roads %>%
+  select(full_cou15, join_TOW_1, full_cou14) %>%
+  filter(full_cou15 != join_TOW_1)
+```
+It looks like there are clearly some errors in the 

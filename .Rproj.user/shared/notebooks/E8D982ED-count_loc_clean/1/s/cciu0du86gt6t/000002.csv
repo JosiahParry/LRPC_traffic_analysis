@@ -1,0 +1,2 @@
+"0","# Load exported file from QGIS "
+"0","lrpc_roads <- read_csv(""../GIS/geo_spat/lrpc_roads/lrpc_roads.csv"")"
