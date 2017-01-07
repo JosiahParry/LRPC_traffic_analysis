@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(ggplot2)\n\ncounters_13 <- read_csv(\"data/clean_counts/counters_13.csv\")\ncounters_14 <- read_csv(\"data/clean_counts/counters_14.csv\")\n\ncounters_13 <- counters_13 %>%\n  mutate(wday = wday(date, label = T),\n         month = month(date, label = T))\n\ntier_4 <- counters_13 %>%\n  filter(TIER == 4)\n\ncounters_13 %>%\n  group_by(wday) %>%\n  summarise(avg = mean(total),\n            count_hi = max(total),\n            count_low = min(total),\n            sd = sd(total),\n            se = sd(total)/sqrt(length(total)))\n\nx <- tier_4 %>%\n  group_by(counter, date) %>% \n  summarise(total = sum(total)) %>%\n  mutate(wday = wday(date, label = TRUE))\n\nx %>%\n  ggplot(aes(date, total)) +\n    geom_line() +\n    scale_x_date() +\n    facet_wrap(~counter, scales = \"free\")",
+    "created" : 1483754046220.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "726363575",
+    "id" : "45AFA3E",
+    "lastKnownWriteTime" : 1483755289,
+    "last_content_update" : 1483755289252,
+    "path" : "~/Dropbox/GitHub/LRPC_traffic/git/exploreT4.R",
+    "project_path" : "exploreT4.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
