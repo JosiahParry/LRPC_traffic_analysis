@@ -23,8 +23,8 @@ x <- tier_4 %>%
   summarise(total = sum(total)) %>%
   mutate(wday = wday(date, label = TRUE))
 
-x %>%
+x %>% filter(total >= 3000)%>%
   ggplot(aes(date, total)) +
     geom_line() +
     scale_x_date() +
-    facet_wrap(~counter, scales = "free")
+    facet_wrap(~counter, scales = "free_x")

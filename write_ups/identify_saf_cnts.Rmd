@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+keep_md: TRUE
+---
+```{r, echo=F}
+library(tidyverse)
+```
+
+# Question: 
+## Of the counters used to calculate seasonal averages, how many of them are in the lakes region?
+```{r}
+lrpc <- read_csv("../data/lrpc_counters.csv")
+fctr_grp_15 <- read_csv("../data/15_factor_grp.csv",
+                        col_types = 
+                          list(col_double(), col_character(), col_character(), col_character()))
+
+head(lrpc)
+head(fctr_grp_15)
+```
+
+The `lrpc` data frame contains all of the counters used by the **LRPC**, and the `fctr_grp_15` identifies all of the counters used by the **NH DOT** in the calculation of *seasonal adjustment factors*. The question to be assessed is: how many of these counters used by the **NH DOT** are within the **LRPC's** area? The hypothesis is that the Lakes Region is a very unique place with respect to recreation and tourism and therefore may be an anomoly in traffic analysis, and thus it's average traffic count may be dampened by other counters within it's same adjustment factor grouping.
+
+To identify which factors are the **LRPC's** in the seasonal adjustment factor evaluation I will identify the counters from `fctr_grp_15` which are in the 30 towns of the Lakes Region.
+
+The following code isolates all of the towns in the Lakes Region.
+```{r}
+lrpc_towns <- sort(unique(na.omit(lrpc$Town)))
+length(lrpc_towns)
+```
+Next step is to isolate the counters that are used in the seasonal adjustment factor creation that are *within* the Lakes Region.
+
+```{r}
+lrpc_saf_counters <- fctr_grp_15 %>%
+  filter(TOWN %in% lrpc_towns)
+
+lrpc_saf_counters %>% arrange(COUNTER)
+```
+
+Above we can see the 9 counters that are used in the calculation of **AADT** that are within the Lakes Region. But it does look like the counters had their leading `0's` left out, this might cause a future problem. This is an easy fix. 
+```{r}
+lrpc_saf_counters$COUNTER <-  str_pad(lrpc_saf_counters$COUNTER, 8, side = "left", pad = "0")
+lrpc_saf_counters
+```
+
+

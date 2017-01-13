@@ -1,0 +1,11 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Questions:
+
+  - Which counters are used in the creation of seasonal adjustment factors that are within the Lakes Region?
+    - What are the adjustment factors of just those roads?
+    - Are they significantly different than those ofthe same road class that are *not* in the Lakes Region?
+  - What is the AADT of Lakes Region roads when it is calculated *only* with the roads that are in the Lakes Region?
+  

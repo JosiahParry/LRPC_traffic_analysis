@@ -1,4 +1,0 @@
-"0","lrpc_roads <- lrpc_roads %>% "
-"0","  mutate(COMBNUMS = strsplit(COMBNUMS, ""[, ]+"")) %>%"
-"0","  unnest(COMBNUMS)"
-"0","lrpc_roads$COMBNUMS <- lrpc_roads$COMBNUMS %>% stringr::str_replace_all("":"", """")"
