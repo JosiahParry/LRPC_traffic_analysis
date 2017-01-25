@@ -1,0 +1,156 @@
+<pre><code>## Loading tidyverse: ggplot2
+## Loading tidyverse: tibble
+## Loading tidyverse: tidyr
+## Loading tidyverse: readr
+## Loading tidyverse: purrr
+## Loading tidyverse: dplyr</code></pre>
+<pre><code>## Conflicts with tidy packages ----------------------------------------------</code></pre>
+<pre><code>## filter(): dplyr, stats
+## lag():    dplyr, stats</code></pre>
+<div id="question" class="section level1">
+<h1>Question:</h1>
+<div id="of-the-counters-used-to-calculate-seasonal-averages-how-many-of-them-are-in-the-lakes-region" class="section level2">
+<h2>Of the counters used to calculate seasonal averages, how many of them are in the lakes region?</h2>
+<pre class="r"><code>lrpc &lt;- read_csv(&quot;../data/lrpc_counters.csv&quot;)
+fctr_grp_15 &lt;- read_csv(&quot;../data/15_factor_grp.csv&quot;,
+                        col_types = 
+                          list(col_double(), col_character(), col_character(), col_character()))
+
+head(lrpc)</code></pre>
+<pre><code>## # A tibble: 6 × 67
+##       GDSNAME STATION  AREA PERIMETER COUNTERS COUNTERSI  COUNTER  TYPE
+##         &lt;chr&gt;   &lt;chr&gt; &lt;int&gt;     &lt;int&gt;    &lt;int&gt;     &lt;int&gt;    &lt;chr&gt; &lt;chr&gt;
+## 1 CNTR:427050  427050     0         0     3377      3377 82427050    82
+## 2 CNTR:427050  427050     0         0     3377      3377 82427050    82
+## 3 CNTR:427050  427050     0         0     3377      3377 82427050    82
+## 4 CNTR:025086  025086     0         0     3592      3592 82025086    82
+## 5 CNTR:025011  025011     0         0     3593      3593 82025011    82
+## 6 CNTR:025081  025081     0         0     3594      3594 82025081    82
+## # ... with 59 more variables: Group &lt;int&gt;, TYPE1 &lt;chr&gt;, Cycle &lt;int&gt;,
+## #   CNTRNUM &lt;int&gt;, Town &lt;chr&gt;, Location &lt;chr&gt;, OBJECTID1 &lt;int&gt;,
+## #   UNIQUEID &lt;int&gt;, SRI &lt;chr&gt;, MPSTART &lt;dbl&gt;, MPEND &lt;dbl&gt;, STREET &lt;chr&gt;,
+## #   TOWNID &lt;chr&gt;, TOWNDOT &lt;chr&gt;, SECTLENGT &lt;dbl&gt;, FUNCTSYST &lt;int&gt;,
+## #   FUNCTSY_1 &lt;chr&gt;, URBANID &lt;int&gt;, URBANNAME &lt;chr&gt;, TIER &lt;int&gt;,
+## #   TIERDESCR &lt;chr&gt;, LCLEGEND &lt;chr&gt;, LEGISCLAS &lt;chr&gt;, WINTERMAI &lt;chr&gt;,
+## #   SUMMERMAI &lt;chr&gt;, OWNERSHIP &lt;chr&gt;, OWNERSHIP &lt;chr&gt;, HPMSOWNER &lt;int&gt;,
+## #   HPMSOWN_1 &lt;chr&gt;, PLOWLEVEL &lt;int&gt;, SURFTYPE &lt;chr&gt;, ROADWAYWI &lt;int&gt;,
+## #   NUMLANES &lt;int&gt;, LANEWIDTH &lt;int&gt;, SHLDRTYPE &lt;chr&gt;, SHLDRTY_1 &lt;chr&gt;,
+## #   SHLDRWIDT &lt;int&gt;, SHLDRWI_1 &lt;int&gt;, DIRECTION &lt;chr&gt;, ISTOLL &lt;chr&gt;,
+## #   ISNHS &lt;chr&gt;, NHS &lt;int&gt;, NHSDESCR &lt;chr&gt;, ISTRK_ROU &lt;chr&gt;,
+## #   COUNTYID &lt;int&gt;, COUNTYNAM &lt;chr&gt;, EXECCOUNC &lt;int&gt;, EXECCOU_1 &lt;chr&gt;,
+## #   COUNTERID &lt;chr&gt;, AADTCURR_ &lt;int&gt;, AADT &lt;int&gt;, ROUTEHIOR &lt;chr&gt;,
+## #   STREETALI &lt;chr&gt;, NODE1 &lt;chr&gt;, NODE2 &lt;chr&gt;, HPMSFACIL &lt;int&gt;,
+## #   HPMSFAC_1 &lt;chr&gt;, HPMSTHRU_ &lt;int&gt;, COMBNUMS &lt;chr&gt;</code></pre>
+<pre class="r"><code>head(fctr_grp_15)</code></pre>
+<pre><code>## # A tibble: 6 × 4
+##   GROUP COUNTER      TOWN
+##   &lt;dbl&gt;   &lt;chr&gt;     &lt;chr&gt;
+## 1     1 2067002   CAMPTON
+## 2     1 2197090   HAMPTON
+## 3     1 2265092 LITTLETON
+## 4     1 2409003  SEABROOK
+## 5     1 2439005    SUTTON
+## 6     1 2451001    TILTON
+## # ... with 1 more variables: LOCATION &lt;chr&gt;</code></pre>
+<p>The <code>lrpc</code> data frame contains all of the counters used by the <strong>LRPC</strong>, and the <code>fctr_grp_15</code> identifies all of the counters used by the <strong>NH DOT</strong> in the calculation of <em>seasonal adjustment factors</em>. The question to be assessed is: how many of these counters used by the <strong>NH DOT</strong> are within the <strong>LRPC’s</strong> area? The hypothesis is that the Lakes Region is a very unique place with respect to recreation and tourism and therefore may be an anomoly in traffic analysis, and thus it’s average traffic count may be dampened by other counters within it’s same adjustment factor grouping.</p>
+<p>To identify which factors are the <strong>LRPC’s</strong> in the seasonal adjustment factor evaluation I will identify the counters from <code>fctr_grp_15</code> which are in the 30 towns of the Lakes Region.</p>
+<p>The following code isolates all of the towns in the Lakes Region.</p>
+<pre class="r"><code>lrpc_towns &lt;- sort(unique(na.omit(lrpc$Town)))
+length(lrpc_towns)</code></pre>
+<pre><code>## [1] 30</code></pre>
+<p>Next step is to isolate the counters that are used in the seasonal adjustment factor creation that are <em>within</em> the Lakes Region.</p>
+<pre class="r"><code>saf_counters_15 &lt;- fctr_grp_15 %&gt;%
+  filter(TOWN %in% lrpc_towns)
+
+saf_counters_15 %&gt;% arrange(COUNTER)</code></pre>
+<pre><code>## # A tibble: 9 × 4
+##   GROUP  COUNTER      TOWN
+##   &lt;dbl&gt;    &lt;chr&gt;     &lt;chr&gt;
+## 1     5  2011001     ALTON
+## 2     5  2169053   GILFORD
+## 3     4 22039022   BELMONT
+## 4     5  2295022  MEREDITH
+## 5     5  2357021   OSSIPEE
+## 6     5  2443001  TAMWORTH
+## 7     1  2451001    TILTON
+## 8     5 62493054 WOLFEBORO
+## 9     2 82015056   ANDOVER
+## # ... with 1 more variables: LOCATION &lt;chr&gt;</code></pre>
+<p>Above we can see the 9 counters that are used in the calculation of <strong>AADT</strong> that are within the Lakes Region. But it does look like the counters had their leading <code>0's</code> left out, this might cause a future problem. This is an easy fix.</p>
+<pre class="r"><code>saf_counters_15$COUNTER &lt;-  str_pad(saf_counters_15$COUNTER, 8, side = &quot;left&quot;, pad = &quot;0&quot;)
+saf_counters_15</code></pre>
+<pre><code>## # A tibble: 9 × 4
+##   GROUP  COUNTER      TOWN
+##   &lt;dbl&gt;    &lt;chr&gt;     &lt;chr&gt;
+## 1     1 02451001    TILTON
+## 2     2 82015056   ANDOVER
+## 3     4 22039022   BELMONT
+## 4     5 02011001     ALTON
+## 5     5 02169053   GILFORD
+## 6     5 02295022  MEREDITH
+## 7     5 02357021   OSSIPEE
+## 8     5 02443001  TAMWORTH
+## 9     5 62493054 WOLFEBORO
+## # ... with 1 more variables: LOCATION &lt;chr&gt;</code></pre>
+<p>Now I must repeat this for the years <strong>2013 &amp; 2014</strong>.</p>
+<pre class="r"><code>fctr_grp_14 &lt;- read_csv(&quot;../data/14_factor_grp.csv&quot;,
+                        col_types = 
+                          list(col_double(), col_character(), col_character(), col_character()))
+
+fctr_grp_13 &lt;- read_csv(&quot;../data/13_factor_grp.csv&quot;,
+                        col_types = 
+                          list(col_double(), col_character(), col_character(), col_character()))
+
+saf_counters_14 &lt;- fctr_grp_14 %&gt;%
+  filter(TOWN %in% lrpc_towns)
+
+saf_counters_13 &lt;- fctr_grp_13 %&gt;%
+  filter(TOWN %in% lrpc_towns)</code></pre>
+<p>Verify that they are all the same:</p>
+<pre class="r"><code>saf_counters_13 %&gt;% arrange(TOWN)</code></pre>
+<pre><code>## # A tibble: 9 × 4
+##     GRP  counter      TOWN
+##   &lt;dbl&gt;    &lt;chr&gt;     &lt;chr&gt;
+## 1     5 02011001     ALTON
+## 2     2 82015056   ANDOVER
+## 3     5 22039022   BELMONT
+## 4     5 02169053   GILFORD
+## 5     5 02295022  MEREDITH
+## 6     5 02357021   OSSIPEE
+## 7     5 02443001  TAMWORTH
+## 8     1 02451001    TILTON
+## 9     5 62493054 WOLFEBORO
+## # ... with 1 more variables: LOCATION &lt;chr&gt;</code></pre>
+<pre class="r"><code>saf_counters_14 %&gt;% arrange(TOWN)</code></pre>
+<pre><code>## # A tibble: 9 × 4
+##     GRP  counter      TOWN
+##   &lt;dbl&gt;    &lt;chr&gt;     &lt;chr&gt;
+## 1     5 02011001     ALTON
+## 2     2 82015056   ANDOVER
+## 3     5 22039022   BELMONT
+## 4     5 02169053   GILFORD
+## 5     5 02295022  MEREDITH
+## 6     5 02357021   OSSIPEE
+## 7     5 02443001  TAMWORTH
+## 8     1 02451001    TILTON
+## 9     5 62493054 WOLFEBORO
+## # ... with 1 more variables: LOCATION &lt;chr&gt;</code></pre>
+<pre class="r"><code>saf_counters_15 %&gt;% arrange(TOWN)</code></pre>
+<pre><code>## # A tibble: 9 × 4
+##   GROUP  COUNTER      TOWN
+##   &lt;dbl&gt;    &lt;chr&gt;     &lt;chr&gt;
+## 1     5 02011001     ALTON
+## 2     2 82015056   ANDOVER
+## 3     4 22039022   BELMONT
+## 4     5 02169053   GILFORD
+## 5     5 02295022  MEREDITH
+## 6     5 02357021   OSSIPEE
+## 7     5 02443001  TAMWORTH
+## 8     1 02451001    TILTON
+## 9     5 62493054 WOLFEBORO
+## # ... with 1 more variables: LOCATION &lt;chr&gt;</code></pre>
+<p>The continuous counters for the years <em>2013 &amp; 2014</em> are identical. Only in <em>2015</em> did the counter in <em>Belmont</em> change from group 5 to group 4. Now I’m going to write these table to an R file to be accessed in calculating each years adjustments.</p>
+<pre class="r"><code>#saveRDS(saf_counters_13, &quot;../data/factors_13_14.rds&quot;)
+#saveRDS(saf_counters_15, &quot;../data/factors_15.rds&quot;)</code></pre>
+</div>
+</div>

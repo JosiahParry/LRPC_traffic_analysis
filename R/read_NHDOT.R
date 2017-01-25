@@ -1,4 +1,5 @@
 read_NHDOT <- function(directory, extension = "RAW", n_skip = 6){
+  library(gdata)
   source("R/list_dat_dirs.R")
   dat_dirs <- list_dat_dirs(directory, extension = extension)
   all_files <- list()
